@@ -29,16 +29,16 @@ public class ArithmeticCoder {
         range = (long)(high - low)+1;
         high = (int)(low + (range * s.highCount) / s.scale -1);
         low = (int)(low + (range * s.lowCount) / s.scale);
-        System.out.println("encoding symbol " + s);
+        //System.out.println("encoding symbol " + s);
 
         for(;;) {
-            System.out.println("\tlow = " + low + " high = " + high);
+            //System.out.println("\tlow = " + low + " high = " + high);
             if ((high & 0x8000) == (low & 0x8000)) {
                 stream.outputBit(high & 0x8000);
-                System.out.println("\toutput bit: " + (high & 0x8000));
+                //System.out.println("\toutput bit: " + (high & 0x8000));
                 while (underflowBits > 0) {
                     stream.outputBit(~high & 0x8000);
-                    System.out.println("\toutput underflow bit: " + (~high & 0x8000));
+                    //System.out.println("\toutput underflow bit: " + (~high & 0x8000));
                     underflowBits--;
                 }
             }
@@ -46,7 +46,7 @@ public class ArithmeticCoder {
                 underflowBits++;
                 low &= 0x3FFF;
                 high |= 0x4000;
-                System.out.println("\tunderflow. low = " + low + " high = " + high);
+                //System.out.println("\tunderflow. low = " + low + " high = " + high);
             }
             else return;
             low <<= 1;
@@ -59,10 +59,10 @@ public class ArithmeticCoder {
 
     public void flushEncoder(BitIO stream) throws IOException {
         stream.outputBit(low & 0x4000);
-        System.out.println("\toutput final bit: " + (low & 0x4000));
+        //System.out.println("\toutput final bit: " + (low & 0x4000));
         while(underflowBits > 0) {
             stream.outputBit(~low & 0x4000);
-            System.out.println("\toutput final underflow bit: " + (~low & 0x4000));
+           // System.out.println("\toutput final underflow bit: " + (~low & 0x4000));
             underflowBits--;
         }
     }
@@ -207,9 +207,63 @@ public class ArithmeticCoder {
         outBits.flush();
         System.out.println();
         System.out.println(Hex.encodeHexString(out.toByteArray()));
-        testBillGates();
+        //testBillGates();
+        testWiki();
     }
 
+    private static void testWiki() throws IOException {
+        File f = new File("e:\\projects\\crypto\\data-compression.mhtml");
+        FileInputStream fin = new FileInputStream(f);
+        byte[] buffer = new byte[8196];
+        Map<Byte, Integer> stats = new HashMap<>();
+        int count = 0;
+        int read = 0;
+        while ( (read = fin.read(buffer)) > 0) {
+            count += read;
+            for (int i= 0; i< read; i++) {
+                byte bl = (byte)(buffer[i] & 0x0F);
+                byte bh = (byte)((buffer[i] >>> 4) & 0x0F);
+                stats.put(bl, stats.getOrDefault(bl, 0) +1);
+                stats.put(bh, stats.getOrDefault(bh, 0) +1);
+                //stats.put(buffer[i], stats.getOrDefault(buffer[i], 0) + 1);
+            }
+        }
+        fin.close();
+        final Map<Byte, Symbol> symbolTable = new HashMap<>();
+        final int finalCount = count *2;
+        stats.forEach((k,v) -> {
+            System.out.println(k + "," + v + "," + ((double)v/(double)finalCount));
+        });
+        int lastValue = 0;
+        for (Map.Entry<Byte, Integer> e : stats.entrySet()) {
+            double prob = (double)e.getValue()/(double)finalCount;
+            int highValue = lastValue +  (int)Math.floor(10000 * prob);
+            symbolTable.put(e.getKey(), new Symbol(lastValue, highValue, 9991));
+            lastValue = highValue;
+        }
+
+        //Set up compression and output
+        BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream("e:\\projects\\crypto\\data-compression.mhtml.acc"));
+        BitIO outBits = new BitIO(out);
+        ArithmeticCoder coder = new ArithmeticCoder();
+        coder.initializeEncoder();
+
+        //generate symbol stream
+        fin = new FileInputStream(f);
+        read = 0;
+        while ( (read = fin.read(buffer)) > 0) {
+            for (int i= 0; i< read; i++) {
+                byte bl = (byte)(buffer[i] & 0x0F);
+                byte bh = (byte)((buffer[i] >>> 4) & 0x0F);
+                coder.encodeSymbol(symbolTable.get(bl), outBits);
+                coder.encodeSymbol(symbolTable.get(bh), outBits);
+            }
+        }
+        coder.flushEncoder(outBits);
+        outBits.flush();
+        out.flush();
+        out.close();
+    }
     private static void testBillGates() throws IOException {
         Map<Character, Symbol> symbolMap = new HashMap<>();
         symbolMap.put('B', new Symbol(0,1,11));
