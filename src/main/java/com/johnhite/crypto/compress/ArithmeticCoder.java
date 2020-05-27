@@ -25,10 +25,9 @@ public class ArithmeticCoder {
     }
 
     public void encodeSymbol(Symbol s, BitIO stream) throws IOException {
-        long range;
-        range = (long)(high - low)+1;
-        high = (int)(low + (range * s.highCount) / s.scale -1);
-        low = (int)(low + (range * s.lowCount) / s.scale);
+        long range = (long)(high - low)+1;
+        high = (int)((long)low + (range * s.highCount) / (long)s.scale - 1L);
+        low = (int)((long)low + (range * s.lowCount) / (long)s.scale);
         //System.out.println("encoding symbol " + s);
 
         for(;;) {
@@ -67,12 +66,6 @@ public class ArithmeticCoder {
         }
     }
 
-    public int getCurrentCount(Symbol s) {
-        long range = (long)(high - low) +1;
-        int count = (int)(((code - low +1)*s.scale - 1)/ range);
-        return count;
-    }
-
     public void initializeDecoder(BitIO stream) throws IOException {
         code = 0;
         for (int i = 0; i < 16; i++) {
@@ -83,10 +76,19 @@ public class ArithmeticCoder {
         high = 0xffff;
     }
 
+    public int getCurrentCount(Symbol s) {
+        long range = (long)(high - low) +1;
+        int count = (int)(((long)(code - low +1)*(long)s.scale - 1)/ range);
+        if (count < 0) {
+            System.out.println("on noes!");
+        }
+        return count;
+    }
+
     public void removeSymbolFromStream(Symbol s, BitIO stream) throws IOException {
         long range = (long)(high - low) + 1;
-        high = (int)(low + (range * s.highCount) / s.scale -1);
-        low = (int)(low + (range * s.lowCount) / s.scale);
+        high = (int)((long)low + (range * s.highCount) / (long)s.scale -1);
+        low = (int)((long)low + (range * s.lowCount) / (long)s.scale);
         for (;;) {
             if ((high & 0x8000) == (low & 0x8000)) {
             }
@@ -97,9 +99,9 @@ public class ArithmeticCoder {
             }
             else return;
 
-            low <<= 1;
+            low <<= 1; //shift in a 0 on the low count
             high <<= 1;
-            high |= 1;
+            high |= 1; //shift in a 1 on the high count
             low &= 0xFFFF;
             high &= 0xFFFF;
             code <<= 1;
@@ -208,7 +210,57 @@ public class ArithmeticCoder {
         System.out.println();
         System.out.println(Hex.encodeHexString(out.toByteArray()));
         //testBillGates();
-        testWiki();
+        testWiki2();
+    }
+
+    private static void testWiki2() throws IOException {
+        File compOut =new File("e:\\projects\\crypto\\compressed.acc");
+        File expOut = new File("e:\\projects\\crypto\\expanded.mhtml");
+        if (compOut.exists()) compOut.delete();
+        if (expOut.exists()) expOut.delete();
+
+        Modeler modeler = new Modeler8B("e:\\projects\\crypto\\data-compression.mhtml");
+
+        //Set up compression and output
+        BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream("e:\\projects\\crypto\\compressed.acc"));
+        BitIO outBits = new BitIO(out);
+        ArithmeticCoder coder = new ArithmeticCoder();
+        coder.initializeEncoder();
+
+        for (Symbol s : modeler) {
+            coder.encodeSymbol(s, outBits);
+        }
+
+        coder.flushEncoder(outBits);
+        outBits.flush();
+        out.flush();
+        out.close();
+
+        //expand
+        FileInputStream in = new FileInputStream("e:\\projects\\crypto\\compressed.acc");
+        BitIO inStream = new BitIO(in);
+        coder = new ArithmeticCoder();
+        coder.initializeDecoder(inStream);
+        final Symbol symScale = modeler.getEntryFromCount(0).getValue();
+
+        BufferedOutputStream expanded = new BufferedOutputStream(new FileOutputStream("e:\\projects\\crypto\\expanded.mhtml"));
+        int expandedBytes = modeler.getBytesProcessed();
+        for (int i=0; i< expandedBytes; i++) {
+            int count = coder.getCurrentCount(symScale);
+            Map.Entry<Byte, ArithmeticCoder.Symbol> entry = modeler.getEntryFromCount(count);
+            coder.removeSymbolFromStream(entry.getValue(), inStream);
+            int low = entry.getKey();
+
+            /*count = coder.getCurrentCount(symScale);
+            entry = modeler.getEntryFromCount(count);
+            coder.removeSymbolFromStream(entry.getValue(), inStream);
+            int high = entry.getKey();
+
+            expanded.write((byte)((high << 4) | low));*/
+            expanded.write(low);
+        }
+        expanded.flush();
+        expanded.close();
     }
 
     private static void testWiki() throws IOException {
