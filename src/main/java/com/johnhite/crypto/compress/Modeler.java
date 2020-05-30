@@ -7,4 +7,5 @@ public interface Modeler extends Iterable<ArithmeticCoder.Symbol> {
     ArithmeticCoder.Symbol next();
     Map.Entry<Byte, ArithmeticCoder.Symbol> getEntryFromCount(int count);
     int getBytesProcessed();
+    int getBytesOutput();
 }

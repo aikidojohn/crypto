@@ -1,9 +1,13 @@
 package com.johnhite.crypto.compress;
+import com.johnhite.crypto.salsa20.ChaChaInputStream;
+import com.johnhite.crypto.salsa20.ChaChaOutputStream;
 import org.apache.commons.codec.binary.Hex;
 
 import java.io.*;
+import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
 /**
  * Based on https://marknelson.us/posts/1991/02/01/arithmetic-coding-statistical-modeling-data-compression.html
@@ -33,7 +37,7 @@ public class ArithmeticCoder {
         for(;;) {
             //System.out.println("\tlow = " + low + " high = " + high);
             if ((high & 0x8000) == (low & 0x8000)) {
-                stream.outputBit(high & 0x8000);
+                stream.outputBit(high  & 0x8000);
                 //System.out.println("\toutput bit: " + (high & 0x8000));
                 while (underflowBits > 0) {
                     stream.outputBit(~high & 0x8000);
@@ -222,8 +226,12 @@ public class ArithmeticCoder {
         Modeler modeler = new Modeler8B("e:\\projects\\crypto\\data-compression.mhtml");
 
         //Set up compression and output
+
+        byte[] key = new byte[32];
+        byte[] nonce = new byte[8];
+
         BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream("e:\\projects\\crypto\\compressed.acc"));
-        BitIO outBits = new BitIO(out);
+        BitIO outBits = new BitIO(new ChaChaOutputStream(out, key, nonce));
         ArithmeticCoder coder = new ArithmeticCoder();
         coder.initializeEncoder();
 
@@ -238,7 +246,7 @@ public class ArithmeticCoder {
 
         //expand
         FileInputStream in = new FileInputStream("e:\\projects\\crypto\\compressed.acc");
-        BitIO inStream = new BitIO(in);
+        BitIO inStream = new BitIO(new ChaChaInputStream(in, key, nonce));
         coder = new ArithmeticCoder();
         coder.initializeDecoder(inStream);
         final Symbol symScale = modeler.getEntryFromCount(0).getValue();

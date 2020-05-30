@@ -101,4 +101,8 @@ public class Modeler4B implements Modeler, Iterator<ArithmeticCoder.Symbol> {
     public int getBytesProcessed() {
         return bufferCount;
     }
+
+    public int getBytesOutput() {
+        return 0; //TODO
+    }
 }
