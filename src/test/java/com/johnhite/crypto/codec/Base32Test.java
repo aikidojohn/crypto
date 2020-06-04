@@ -7,8 +7,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
-import javax.xml.bind.DatatypeConverter;
-
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.Hex;
 import org.junit.Test;
@@ -88,9 +86,9 @@ public class Base32Test {
         for (int i=1; i < 20; i++) {
             byte[] test = new byte[i];
             rand.nextBytes(test);
-            String encoded16 = DatatypeConverter.printHexBinary(test);
+            String encoded16 = Hex.encodeHexString(test);
             String encoded32 = Base32.encodeCrockford(test);
-            String encoded64 = DatatypeConverter.printBase64Binary(test);
+            String encoded64 = Base64.encodeBase64String(test);
             System.out.println("Original = " + i);
             System.out.println("Hex:    " + encoded16);
             System.out.println("Base32: " + encoded32);

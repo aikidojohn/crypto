@@ -1,11 +1,13 @@
 package com.johnhite.crypto.salsa20;
 
 import org.apache.commons.codec.binary.Hex;
-import org.bouncycastle.util.Arrays;
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 
+/*
+https://cr.yp.to/snuffle/spec.pdf
+ */
 public class ChaCha {
 
     private int[] state = new int[16];

@@ -218,8 +218,8 @@ public class ArithmeticCoder {
     }
 
     private static void testWiki2() throws IOException {
-        File compOut =new File("e:\\projects\\crypto\\compressed.acc");
-        File expOut = new File("e:\\projects\\crypto\\expanded.mhtml");
+        File compOut =new File("e:\\projects\\crypto\\target\\compressed.acc");
+        File expOut = new File("e:\\projects\\crypto\\target\\expanded.mhtml");
         if (compOut.exists()) compOut.delete();
         if (expOut.exists()) expOut.delete();
 
@@ -230,7 +230,7 @@ public class ArithmeticCoder {
         byte[] key = new byte[32];
         byte[] nonce = new byte[8];
 
-        BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream("e:\\projects\\crypto\\compressed.acc"));
+        BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream("e:\\projects\\crypto\\target\\compressed.acc"));
         BitIO outBits = new BitIO(new ChaChaOutputStream(out, key, nonce));
         ArithmeticCoder coder = new ArithmeticCoder();
         coder.initializeEncoder();
@@ -245,13 +245,13 @@ public class ArithmeticCoder {
         out.close();
 
         //expand
-        FileInputStream in = new FileInputStream("e:\\projects\\crypto\\compressed.acc");
+        FileInputStream in = new FileInputStream("e:\\projects\\crypto\\target\\compressed.acc");
         BitIO inStream = new BitIO(new ChaChaInputStream(in, key, nonce));
         coder = new ArithmeticCoder();
         coder.initializeDecoder(inStream);
         final Symbol symScale = modeler.getEntryFromCount(0).getValue();
 
-        BufferedOutputStream expanded = new BufferedOutputStream(new FileOutputStream("e:\\projects\\crypto\\expanded.mhtml"));
+        BufferedOutputStream expanded = new BufferedOutputStream(new FileOutputStream("e:\\projects\\crypto\\target\\expanded.mhtml"));
         int expandedBytes = modeler.getBytesProcessed();
         for (int i=0; i< expandedBytes; i++) {
             int count = coder.getCurrentCount(symScale);
