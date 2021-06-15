@@ -1,0 +1,44 @@
+<html>
+
+<body>
+<script>
+        function toHex(arrayBuffer) {
+            const hashArray = Array.from(new Uint8Array(arrayBuffer));                     // convert buffer to byte array
+            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            return hashHex;
+        }
+        async function proofOfWorkTest() {
+            var snonce = new Uint8Array(10);
+            crypto.getRandomValues(snonce);
+            proofOfWork(13, snonce, "aikidojohn@gmail.com");
+        }
+        async function proofOfWork(difficulty, snonce, email) {
+            const bits = difficulty;
+            const mask = (2 ** bits - 1) << (32 - bits);
+            var emailData = new TextEncoder().encode(email);
+            var hashHex = "";
+            var c = 0;
+            while (true) {
+                var counter = new ArrayBuffer(4);
+                new DataView(counter).setUint32(0, c);
+                var data = new Uint8Array(emailData.length + snonce.length + 4);
+                data.set(emailData);
+                data.set(snonce, emailData.length);
+                data.set(new Uint8Array(counter), emailData.length + snonce.length);
+                var hash = await crypto.subtle.digest('SHA-512', data);
+                var msb = new DataView(hash).getUint32(0);
+                if ((msb & mask) == 0) {
+                    hashHex = toHex(hash);
+                    break;
+                }
+                c++;
+            }
+            console.log(hashHex);
+            console.log(c);
+            console.log(btoa(c));
+            return btoa(c);
+        }
+    </script>
+<button id="start" onclick="proofOfWorkTest()">Start</button>
+</body>
+</html>
