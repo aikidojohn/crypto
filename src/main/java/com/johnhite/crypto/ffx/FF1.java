@@ -2,14 +2,12 @@ package com.johnhite.crypto.ffx;
 
 import org.bouncycastle.util.encoders.Hex;
 
-import javax.crypto.Cipher;
-import javax.crypto.KeyGenerator;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.SecretKey;
+import javax.crypto.*;
 import javax.crypto.spec.IvParameterSpec;
 import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.nio.ByteBuffer;
+import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -33,27 +31,41 @@ public class FF1 {
     private RadixEncoding base;
     private byte[] tweak;
     private Cipher aesCipher;
+    private long minLength;
+    private long maxLength;
 
-    public static boolean debug = false;
-
-    public void init(SecretKey key, FFXAlgorithmParameterSpec params) throws InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException {
+    public void init(SecretKey key, FFXAlgorithmParameterSpec params) throws InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, InvalidAlgorithmParameterException {
         if (!key.getAlgorithm().equalsIgnoreCase("AES")) {
-            throw new InvalidKeyException("AES-FF31 requires an AES Key");
+            throw new InvalidKeyException("AES-FF1 requires an AES key");
+        }
+        if (params.getBase().getRadix() < 2 || params.getBase().getRadix() > 65536) {
+            throw new InvalidAlgorithmParameterException("Invalid radix encoding. AES-FF1 supports radix encodings in the range [2...65536]");
         }
         this.key = key;
         this.base =  params.getBase();
         this.tweak = params.getTweak() == null ? new byte[0] : params.getTweak();
         this.aesCipher = Cipher.getInstance("AES/CBC/NoPadding");
+        this.minLength = minLen(this.base);
+        this.maxLength = maxLen(this.base);
     }
 
-    public String encrypt(String value) {
+    public String encrypt(String value) throws IllegalBlockSizeException, BadPaddingException {
         final char[] X = value.toCharArray();
+        if (X.length < minLength || X.length > maxLength) {
+            throw new IllegalBlockSizeException("Invalid message length. AES-FF1 for radix " + base.getRadix() + " supports message lengths " + minLength + " - " + maxLength);
+        }
+        if (!base.isValidEncoding(X)) {
+            throw new IllegalArgumentException("Input is not a valid radix " + base.getRadix() + " encoding");
+        }
+
         final int u = X.length/2;
         final int v = X.length - u;
         final int b = MoreMath.ceiling(MoreMath.ceiling((double)v * MoreMath.log(2, (double)base.getRadix()))/8.0);
         final int d = 4 * MoreMath.ceiling(b/4.0) + 4;
 
         final BigInteger radixBigInt = BigInteger.valueOf(base.getRadix());
+        final BigInteger powRadixU = radixBigInt.pow(u);
+        final BigInteger powRadixV = radixBigInt.pow(v);
 
         char[] A = Arrays.copyOfRange(X, 0, u);
         char[] B = Arrays.copyOfRange(X, u, X.length);
@@ -61,7 +73,7 @@ public class FF1 {
         //P is a fixed header for the PRF for each round
         final ByteBuffer P = ByteBuffer.allocate(16)
                 .put(new byte[] {VERSION, METHOD_ALTERNATING_FEISTEL, ADDITION_BLOCKWISE})
-                .put(ByteBuffer.allocate(4).putInt((int)base.getRadix()).array(), 1, 3)
+                .put(intToBytes((int)base.getRadix()), 1, 3)
                 .put((byte)10)
                 .put((byte)(u%256)) //split(n)
                 .putInt(X.length) //n
@@ -77,6 +89,7 @@ public class FF1 {
             final ByteBuffer Q = ByteBuffer.allocate(Q0.length + Q1.length +1)
                 .put(Q0).put((byte)i).put(Q1);
 
+            // R = PRF( P || Q )
             final byte[] R = prf(concat(P, Q).array());
 
             // S = first d bytes of R || CIPH(R xor [1]^16) || CIPH(R xor [2]^16) || ... || CIPH(R xor [d/16-1]^16)
@@ -91,7 +104,8 @@ public class FF1 {
             final BigInteger y = new BigInteger(1, S.array());
 
             final int m = i % 2 == 0 ? u : v;
-            final BigInteger c = base.toBase10(A).add(y).mod(radixBigInt.pow(m));
+            final BigInteger radixPowM = i % 2 == 0 ? powRadixU : powRadixV;
+            final BigInteger c = base.toBase10(A).add(y).mod(radixPowM);
             final char[] C = getChars(base.fromBase10(c), 0, m, base.getChar(0));
 
             A = B;
@@ -104,20 +118,30 @@ public class FF1 {
         return sb.toString();
     }
 
-    public String decrypt(String value) {
+    public String decrypt(String value) throws IllegalBlockSizeException, BadPaddingException {
         final char[] X = value.toCharArray();
+        if (X.length < minLength || X.length > maxLength) {
+            throw new IllegalBlockSizeException("Invalid message length. AES-FF1 for radix " + base.getRadix() + " supports message lengths " + minLength + " - " + maxLength);
+        }
+        if (!base.isValidEncoding(X)) {
+            throw new IllegalArgumentException("Input is not a valid radix " + base.getRadix() + " encoding");
+        }
         final int u = X.length/2;
         final int v = X.length - u;
         final int b = MoreMath.ceiling(MoreMath.ceiling((double)v * MoreMath.log(2, (double)base.getRadix()))/8.0);
         final int d = 4 * MoreMath.ceiling(b/4.0) + 4;
 
+        final BigInteger radixBigInt = BigInteger.valueOf(base.getRadix());
+        final BigInteger powRadixU = radixBigInt.pow(u);
+        final BigInteger powRadixV = radixBigInt.pow(v);
+
         char[] A = Arrays.copyOfRange(X, 0, u);
         char[] B = Arrays.copyOfRange(X, u, X.length);
 
+        //P is a fixed header for the PRF for each round
         final ByteBuffer P = ByteBuffer.allocate(16);
         P.put(new byte[] {VERSION, METHOD_ALTERNATING_FEISTEL, ADDITION_BLOCKWISE});
-        //3 bytes of the radix
-        P.put(ByteBuffer.allocate(4).putInt((int)base.getRadix()).array(), 1, 3);
+        P.put(intToBytes((int)base.getRadix()), 1, 3); //3 bytes of the radix
         P.put((byte)10);
         P.put((byte)(u%256));
         P.putInt(X.length);
@@ -147,8 +171,10 @@ public class FF1 {
             }
 
             BigInteger y = new BigInteger(1, S.array());
+
             int m = i % 2 == 0 ? u : v;
-            BigInteger c = base.toBase10(B).subtract(y).mod(BigInteger.valueOf(base.getRadix()).pow(m));
+            final BigInteger radixPowM = i % 2 == 0 ? powRadixU : powRadixV;
+            BigInteger c = base.toBase10(B).subtract(y).mod(radixPowM);
             char[] C = getChars(base.fromBase10(c), 0, m, base.getChar(0));
             B = A;
             A = C;
@@ -160,24 +186,25 @@ public class FF1 {
         return sb.toString();
     }
 
+    public byte[] cipher(byte[] data) throws BadPaddingException, IllegalBlockSizeException {
+        return prf(data);
+    }
+
+    public byte[] prf(byte[] data) throws BadPaddingException, IllegalBlockSizeException {
+        try {
+            aesCipher.init(Cipher.ENCRYPT_MODE, key, iv);
+            byte[] enc = aesCipher.doFinal(data);
+            return Arrays.copyOfRange(enc, enc.length - 16, enc.length);
+        } catch (InvalidAlgorithmParameterException | InvalidKeyException e) {
+            //This should not be possible
+            throw new SecurityException("Error initializing AES Cipher.");
+        }
+    }
     public static int minLen(RadixEncoding base) {
         return MoreMath.logInt((int)base.getRadix(), 1000000, RoundingMode.CEILING);
     }
     public static long maxLen(RadixEncoding base) {
         return (long)(Math.pow(2.0, 32.0) - 1.0);
-    }
-    public byte[] cipher(byte[] data) {
-        return prf(data);
-    }
-
-    public byte[] prf(byte[] data) {
-        try {
-            aesCipher.init(Cipher.ENCRYPT_MODE, key, iv);
-            byte[] enc = aesCipher.doFinal(data);
-            return Arrays.copyOfRange(enc, enc.length-16, enc.length);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
     }
 
     /**
@@ -224,17 +251,11 @@ public class FF1 {
         return ret;
     }
 
-    private byte[] intToBytes(int value, int numBytes) {
-        byte[] ret = new byte[numBytes];
-        ByteBuffer.allocate(4).putInt(value).position(4-numBytes).get(ret,0, numBytes);
-        return ret;
+    private static byte[] intToBytes(int value) {
+        return ByteBuffer.allocate(4).putInt(value).array();
     }
 
-    private byte[] concat(byte[] a, byte[] b) {
-        return ByteBuffer.allocate(a.length + b.length).put(a).put(b).array();
-    }
-
-    private ByteBuffer concat(ByteBuffer a, ByteBuffer b) {
+    private static ByteBuffer concat(ByteBuffer a, ByteBuffer b) {
         return ByteBuffer.allocate(a.capacity() + b.capacity()).put(a.array()).put(b.array());
     }
 

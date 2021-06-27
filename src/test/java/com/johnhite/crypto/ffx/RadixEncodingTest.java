@@ -11,11 +11,16 @@ public class RadixEncodingTest {
 
     @Test
     public void testFromBase10Performance() {
+        BigInteger mil = new BigInteger("63300212705268780712873612318755528348105388191280236591441609518085069433");
+        List<BigInteger> values = new ArrayList<>();
+        for (int j = 0; j < 100000; j++) {
+            values.add(mil.multiply(BigInteger.valueOf(j)));
+        }
+
         List<char[]> result = new ArrayList<>();
-        BigInteger mil = new BigInteger("63300212705268780712873612318755528348105388191280236591441609518085069433389");
         long start = System.currentTimeMillis();
-        for (int j = 0; j < 10000; j++) {
-            result.add(RadixEncoders.BASE36.fromBase10(mil.add(BigInteger.valueOf(j))));
+        for (int j = 0; j < 100000; j++) {
+            result.add(RadixEncoders.BASE36.fromBase10(values.get(j)));
         }
         long end = System.currentTimeMillis();
         System.out.println("Last value: " + new String(result.get(result.size()-1)));
@@ -27,7 +32,7 @@ public class RadixEncodingTest {
         Random rand = new Random();
         int radix = (int) RadixEncoders.BASE36.getRadix();
         List<char[]> values = new ArrayList<>();
-        for (int j = 0; j < 10000; j++) {
+        for (int j = 0; j < 100000; j++) {
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < 50; i++) {
                 sb.append(RadixEncoders.BASE36.getChar(rand.nextInt(radix)));
@@ -36,7 +41,7 @@ public class RadixEncodingTest {
         }
         List<BigInteger> result = new ArrayList<>();
         long start = System.currentTimeMillis();
-        for (int j = 0; j < 10000; j++) {
+        for (int j = 0; j < 100000; j++) {
             result.add(RadixEncoders.BASE36.toBase10(values.get(j)));
         }
         long end = System.currentTimeMillis();

@@ -15,7 +15,7 @@ import java.security.InvalidKeyException;
 import java.security.SecureRandom;
 import java.util.Arrays;
 
-public class FF3 {
+public class FF3v1 {
     private static final IvParameterSpec iv = new IvParameterSpec(new byte[16]);
     private SecretKey key;
     private RadixEncoding base;
@@ -23,10 +23,10 @@ public class FF3 {
 
     public void init(SecretKey key, FFXAlgorithmParameterSpec spec) throws InvalidAlgorithmParameterException, InvalidKeyException {
         if (spec.getTweak() == null || spec.getTweak().length != 8) {
-            throw new InvalidAlgorithmParameterException("AES-FF31 requires a 64 bit tweak value");
+            throw new InvalidAlgorithmParameterException("AES-FF3v1 requires a 64 bit tweak value");
         }
         if (!key.getAlgorithm().equalsIgnoreCase("AES")) {
-            throw new InvalidKeyException("AES-FF31 requires an AES Key");
+            throw new InvalidKeyException("AES-FF3v1 requires an AES Key");
         }
         this.key = key;
         this.base = spec.getBase();
@@ -203,7 +203,7 @@ public class FF3 {
         String message = "12345678909876543210";
 
         //String out = F_A10(message.length(), new byte[]{5, 19, -25}, 1, new BigInteger("11111111"), key);
-        FF3 ff3 = new FF3();
+        FF3v1 ff3 = new FF3v1();
         FFXAlgorithmParameterSpec spec = new FFXAlgorithmParameterSpec(RadixEncoders.NUMBER, new byte[]{5,19, -8, 28, 34,122,4,0});
         ff3.init(key, spec);
         String enc = ff3.encrypt(message);
