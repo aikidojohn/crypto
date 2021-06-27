@@ -281,7 +281,7 @@ public class MontgomeryCurve implements EllipticCurve {
             }
             MontgomeryPt r0 = this.getInfinity();
             MontgomeryPt r1 = this;
-            BigInteger m = BigInteger.TWO.pow(scalar.bitLength()-1);
+            BigInteger m = TWO.pow(scalar.bitLength()-1);
             for (BigInteger i = m; i.compareTo(BigInteger.ZERO) > 0; i = i.shiftRight(1)) {
                 if (scalar.and(i).equals(ZERO)) { //zero bit?
                     r1 = r0.diffAdd(this, r1);

@@ -7,7 +7,6 @@ import javax.crypto.spec.GCMParameterSpec;
 import java.security.*;
 import java.security.spec.AlgorithmParameterSpec;
 import java.security.spec.ECGenParameterSpec;
-import java.security.spec.NamedParameterSpec;
 import java.util.Arrays;
 
 public class KeyManager {
