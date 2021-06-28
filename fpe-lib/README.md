@@ -26,15 +26,16 @@ support key sizes of 128, 192, and 256 bits.
 #### Sample Code
 ```java
     byte[] keyBytes = Hex.decode("2B7E151628AED2A6ABF7158809CF4F3C");
+    byte[] tweak = Hex.decode("39383736353433323130");
     SecretKey key = new SecretKeySpec(keyBytes, "AES");
+    
     FF1 ff1 = new FF1();
-    FFXAlgorithmParameterSpec spec = new FFXAlgorithmParameterSpec(RadixEncoders.BASE10);
-    ff1.init(key, spec);
+    ff1.init(key, new FFXAlgorithmParameterSpec(RadixEncoders.BASE10, tweak));
 
     String encrypted = ff1.encrypt("0123456789");
-    System.out.println(encrypted); // outputs 2433477484
+    System.out.println(encrypted); // outputs 6124200773
 
-    String plaintext = ff1.decrypt("2433477484");
+    String plaintext = ff1.decrypt("6124200773");
     System.out.println(plaintext); // outputs 0123456789
 ```
 
