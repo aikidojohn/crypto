@@ -1,5 +1,6 @@
 package com.johnhite.crypto.ffx;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.math.BigInteger;
@@ -9,6 +10,7 @@ import java.util.Random;
 
 public class RadixEncodingTest {
 
+    @Ignore
     @Test
     public void testFromBase10Performance() {
         BigInteger mil = new BigInteger("63300212705268780712873612318755528348105388191280236591441609518085069433");
@@ -27,6 +29,7 @@ public class RadixEncodingTest {
         System.out.println("fromBase10 Time: " + (end - start));
     }
 
+    @Ignore
     @Test
     public void testToBase10Performance() {
         Random rand = new Random();

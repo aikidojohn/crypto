@@ -9,7 +9,6 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 import java.util.Random;
 
@@ -20,7 +19,7 @@ public class FF1Test {
         byte[] keyBytes = Hex.decode("2B7E151628AED2A6ABF7158809CF4F3C");
         SecretKey key = new SecretKeySpec(keyBytes, "AES");
         FF1 ff1 = new FF1();
-        FFXAlgorithmParameterSpec spec = new FFXAlgorithmParameterSpec(RadixEncoders.NUMBER);
+        FFXAlgorithmParameterSpec spec = new FFXAlgorithmParameterSpec(RadixEncoders.BASE10);
         ff1.init(key, spec);
 
         String encrypted = ff1.encrypt("0123456789");
@@ -34,7 +33,7 @@ public class FF1Test {
         byte[] keyBytes = Hex.decode("2B7E151628AED2A6ABF7158809CF4F3C");
         SecretKey key = new SecretKeySpec(keyBytes, "AES");
         FF1 ff1 = new FF1();
-        FFXAlgorithmParameterSpec spec = new FFXAlgorithmParameterSpec(RadixEncoders.NUMBER);
+        FFXAlgorithmParameterSpec spec = new FFXAlgorithmParameterSpec(RadixEncoders.BASE10);
         ff1.init(key, spec);
 
         String encrypted = ff1.decrypt("2433477484");
@@ -48,7 +47,7 @@ public class FF1Test {
         byte[] keyBytes = Hex.decode("2B7E151628AED2A6ABF7158809CF4F3C");
         SecretKey key = new SecretKeySpec(keyBytes, "AES");
         FF1 ff1 = new FF1();
-        FFXAlgorithmParameterSpec spec = new FFXAlgorithmParameterSpec(RadixEncoders.NUMBER, new byte[]{57, 56, 55, 54, 53, 52, 51, 50, 49, 48});
+        FFXAlgorithmParameterSpec spec = new FFXAlgorithmParameterSpec(RadixEncoders.BASE10, new byte[]{57, 56, 55, 54, 53, 52, 51, 50, 49, 48});
         ff1.init(key, spec);
 
         String encrypted = ff1.encrypt("0123456789");
@@ -62,7 +61,7 @@ public class FF1Test {
         byte[] keyBytes = Hex.decode("2B7E151628AED2A6ABF7158809CF4F3C");
         SecretKey key = new SecretKeySpec(keyBytes, "AES");
         FF1 ff1 = new FF1();
-        FFXAlgorithmParameterSpec spec = new FFXAlgorithmParameterSpec(RadixEncoders.NUMBER, new byte[]{57, 56, 55, 54, 53, 52, 51, 50, 49, 48});
+        FFXAlgorithmParameterSpec spec = new FFXAlgorithmParameterSpec(RadixEncoders.BASE10, new byte[]{57, 56, 55, 54, 53, 52, 51, 50, 49, 48});
         ff1.init(key, spec);
 
         String encrypted = ff1.decrypt("6124200773");
@@ -166,7 +165,7 @@ public class FF1Test {
         byte[] keyBytes = Hex.decode("2B7E151628AED2A6ABF7158809CF4F3C");
         SecretKey key = new SecretKeySpec(keyBytes, "AES");
         FF1 ff1 = new FF1();
-        FFXAlgorithmParameterSpec spec = new FFXAlgorithmParameterSpec(RadixEncoders.NUMBER, new byte[]{55, 55, 55, 55, 112, 113, 114, 115, 55, 55, 55});
+        FFXAlgorithmParameterSpec spec = new FFXAlgorithmParameterSpec(RadixEncoders.BASE10, new byte[]{55, 55, 55, 55, 112, 113, 114, 115, 55, 55, 55});
         ff1.init(key, spec);
 
         try {
@@ -183,7 +182,7 @@ public class FF1Test {
         byte[] keyBytes = Hex.decode("2B7E151628AED2A6ABF7158809CF4F3C");
         SecretKey key = new SecretKeySpec(keyBytes, "AES");
         FF1 ff1 = new FF1();
-        FFXAlgorithmParameterSpec spec = new FFXAlgorithmParameterSpec(RadixEncoders.NUMBER, new byte[]{55, 55, 55, 55, 112, 113, 114, 115, 55, 55, 55});
+        FFXAlgorithmParameterSpec spec = new FFXAlgorithmParameterSpec(RadixEncoders.BASE10, new byte[]{55, 55, 55, 55, 112, 113, 114, 115, 55, 55, 55});
         ff1.init(key, spec);
 
         try {

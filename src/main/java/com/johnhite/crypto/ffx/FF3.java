@@ -17,21 +17,26 @@ import java.security.InvalidKeyException;
 import java.security.SecureRandom;
 import java.util.Arrays;
 
-public class FF3v1 {
+/**
+ * https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-38G.pdf
+ * @deprecated FF3 implementation provided for compatibility with other implementations. FF3-1 should be used instead as it addresses security flaws found in FF3.
+ */
+@Deprecated
+public class FF3 {
     private static final IvParameterSpec iv = new IvParameterSpec(new byte[16]);
     private SecretKey key;
     private RadixEncoding base;
     private byte[] tweak;
     private long minLength;
     private long maxLength;
-    private static boolean debug = false;
+    public static boolean debug = false;
 
     public void init(SecretKey key, FFXAlgorithmParameterSpec spec) throws InvalidAlgorithmParameterException, InvalidKeyException {
         if (spec.getTweak() == null || spec.getTweak().length != 8) {
-            throw new InvalidAlgorithmParameterException("AES-FF3v1 requires a 64 bit tweak value");
+            throw new InvalidAlgorithmParameterException("AES-FF3 requires a 64 bit tweak value");
         }
         if (!key.getAlgorithm().equalsIgnoreCase("AES")) {
-            throw new InvalidKeyException("AES-FF3v1 requires an AES Key");
+            throw new InvalidKeyException("AES-FF3 requires an AES Key");
         }
         this.key = new SecretKeySpec(reverse(key.getEncoded()), "AES");
         this.base = spec.getBase();
@@ -59,11 +64,9 @@ public class FF3v1 {
 
         //Let TL = T[0..27] || [0000] and TR = T[32..55] || T[28..31] || [0000]
         ByteBuffer TL = ByteBuffer.allocate(4);
-        TL.put(tweak,0,3);
-        TL.put((byte)(tweak[3] & (byte)0xF0));
+        TL.put(tweak,0,4);
         ByteBuffer TR = ByteBuffer.allocate(4);
-        TR.put(tweak, 4,3);
-        TR.put((byte)(tweak[3] << 4));
+        TR.put(tweak, 4,4);
         if (debug) {
             System.out.println("TL = " + Arrays.toString(TL.array()) + " - " + Hex.toHexString(TL.array()));
             System.out.println("TR = " + Arrays.toString(TR.array()) + " - " + Hex.toHexString(TR.array()));
@@ -143,11 +146,9 @@ public class FF3v1 {
 
         //3. Let TL = T[0..27] || 04 and TR = T[32..55] || T[28..31] || 04 683 .
         ByteBuffer TL = ByteBuffer.allocate(4);
-        TL.put(tweak,0,3);
-        TL.put((byte)(tweak[3] & (byte)0xF0));
+        TL.put(tweak,0,4);
         ByteBuffer TR = ByteBuffer.allocate(4);
-        TR.put(tweak, 4,3);
-        TR.put((byte)(tweak[3] << 4));
+        TR.put(tweak, 4,4);
 
         //684 4. For i from 7 to 0:
         for (int i=7; i >= 0; i--) {
@@ -191,11 +192,11 @@ public class FF3v1 {
     }
 
     public static long minlen(RadixEncoding domain) {
-        return MoreMath.logInt((int)domain.getRadix(), 1000000, RoundingMode.CEILING);
+        return MoreMath.logInt((int)domain.getRadix(), 100, RoundingMode.CEILING);
     }
     public static long maxlen(RadixEncoding domain) {
         BigDecimal max = MoreMath.log((int)domain.getRadix(), BigDecimal.valueOf(2).pow(96));
-        return 2L * max.toBigInteger().longValue();
+        return BigDecimal.valueOf(2).multiply(max).toBigInteger().longValue();
     }
     public byte[] cipher(byte[] data) {
         try {
@@ -254,7 +255,6 @@ public class FF3v1 {
         return ret;
     }
 
-
     public static void main(String... args) throws Exception {
         System.out.println("Range Number:    " + minlen(RadixEncoders.BASE10) + " - " + maxlen(RadixEncoders.BASE10));
         System.out.println("Range Email:     " + minlen(RadixEncoders.ASCII_EMAIL) + " - " + maxlen(RadixEncoders.ASCII_EMAIL));
@@ -267,7 +267,7 @@ public class FF3v1 {
         String message = "12345678909876543210";
 
         //String out = F_A10(message.length(), new byte[]{5, 19, -25}, 1, new BigInteger("11111111"), key);
-        FF3v1 ff3 = new FF3v1();
+        FF3 ff3 = new FF3();
         FFXAlgorithmParameterSpec spec = new FFXAlgorithmParameterSpec(RadixEncoders.BASE10, new byte[]{5,19, -8, 28, 34,122,4,0});
         ff3.init(key, spec);
         String enc = ff3.encrypt(message);

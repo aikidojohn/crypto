@@ -1,7 +1,5 @@
 package com.johnhite.crypto.ffx;
 
-import org.bouncycastle.util.encoders.Hex;
-
 import javax.crypto.*;
 import javax.crypto.spec.IvParameterSpec;
 import java.math.BigInteger;
@@ -262,10 +260,10 @@ public class FF1 {
     public static void main(String... args) throws Exception {
 
         System.out.println(Arrays.toString(getBytes(new byte[]{10,47,5,10}, 0, 3)));
-        BigInteger num = RadixEncoders.NUMBER.toBase10(new char[]{'1', '2', '0', '3', '7'});
+        BigInteger num = RadixEncoders.BASE10.toBase10(new char[]{'1', '2', '0', '3', '7'});
         System.out.println(num);
         System.out.println(Arrays.toString(num.toByteArray()));
-        System.out.println("Range Number:    " + minLen(RadixEncoders.NUMBER) + " - " + maxLen(RadixEncoders.NUMBER));
+        System.out.println("Range Number:    " + minLen(RadixEncoders.BASE10) + " - " + maxLen(RadixEncoders.BASE10));
         System.out.println("Range Email:     " + minLen(RadixEncoders.ASCII_EMAIL) + " - " + maxLen(RadixEncoders.ASCII_EMAIL));
         System.out.println("Range Printable: " + minLen(RadixEncoders.ASCII_PRINTABLE) + " - " + maxLen(RadixEncoders.ASCII_PRINTABLE));
         SecureRandom random = SecureRandom.getInstanceStrong();
@@ -276,7 +274,7 @@ public class FF1 {
         String message = "1234567890987654321";
 
         FF1 ff1 = new FF1();
-        FFXAlgorithmParameterSpec spec = new FFXAlgorithmParameterSpec(RadixEncoders.NUMBER, new byte[]{5,19, -8, 28, 34,122,4});
+        FFXAlgorithmParameterSpec spec = new FFXAlgorithmParameterSpec(RadixEncoders.BASE10, new byte[]{5,19, -8, 28, 34,122,4});
         ff1.init(key, spec);
         String enc = ff1.encrypt(message);
         System.out.println(enc);

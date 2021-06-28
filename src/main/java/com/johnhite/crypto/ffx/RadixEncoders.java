@@ -10,8 +10,7 @@ public final class RadixEncoders {
     public static final RadixEncoding ASCII_PRINTABLE = new AsciiPrintableEncoding();
     public static final RadixEncoding ASCII_DOMAIN = new AsciiEncoding();
     public static final RadixEncoding ASCII_EMAIL = new AsciiEmail();
-    public static final RadixEncoding ASCII_NAME = new AsciiName();
-    public static final RadixEncoding NUMBER = new Base10Encoding();
+    public static final RadixEncoding BASE10 = new Base10Encoding();
     public static final RadixEncoding BASE36 = new Base36Encoding();
     public static final RadixEncoding BASE16 = new Base16Encoding();
 
