@@ -16,6 +16,7 @@ public class FF1Test {
     @Test
     public void testEncryptWithRadix10TestVector() throws Exception {
 
+
         byte[] keyBytes = Hex.decode("2B7E151628AED2A6ABF7158809CF4F3C");
         SecretKey key = new SecretKeySpec(keyBytes, "AES");
         FF1 ff1 = new FF1();

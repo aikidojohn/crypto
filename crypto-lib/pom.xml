@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>com.johnhite.crypto</groupId>
+		<artifactId>crypto-lib-parent</artifactId>
+		<version>0.1-SNAPSHOT</version>
+	</parent>
+
+	<artifactId>crypto-lib</artifactId>
+	<version>0.1-SNAPSHOT</version>
+	<packaging>jar</packaging>
+	<name>Crypto Lib</name>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.johnhite.crypto</groupId>
+			<artifactId>fpe-lib</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<!-- Apache Commons Codec -->
+		<dependency>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+		</dependency>
+
+		<!-- Bouncy Castle -->
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcprov-jdk15on</artifactId>
+		</dependency>
+
+		<!-- Logging dependencies -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+				<version>3.8.1</version>
+                <configuration>
+					<source>11</source>
+					<target>11</target>
+					<encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+            <!-- plugin> <groupId>org.apache.maven.plugins</groupId> <artifactId>maven-surefire-plugin</artifactId>
+                <configuration> <argLine>-Xmx1024m</argLine> </configuration> </plugin> <plugin>
+                <groupId>org.apache.maven.plugins</groupId> <artifactId>maven-release-plugin</artifactId>
+                <version>2.5</version> <dependencies> <dependency> <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-scm-plugin</artifactId> <version>1.9</version> </dependency>
+                </dependencies> <configuration> <autoVersionSubmodules>true</autoVersionSubmodules>
+                <mavenExecutorId>forked-path</mavenExecutorId> <tagNameFormat>v@{project.version}</tagNameFormat>
+                <preparationGoals>clean test</preparationGoals> </configuration> </plugin -->
+
+
+
+			<!-- Checkstyle plugin <plugin> <groupId>org.apache.maven.plugins</groupId> 
+				<artifactId>maven-checkstyle-plugin</artifactId> </plugin> -->
+		</plugins>
+	</build>
+</project>
