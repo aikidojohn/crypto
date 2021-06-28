@@ -9,7 +9,7 @@ The algorithms implemented are:
 * NIST SP 800-38Gr1 - FF1 and FF3-1
 
 
-###Usage
+### Usage
 All implementations require a finite alphabet representing the valid symbols for the plaintext
 and ciphertext. In order for implementations to be compatible they must use the same alphabet
 and the alphabet symbols must be in the same order. Several predefined alphabets are avaliable
@@ -23,7 +23,7 @@ using the `FFXAlgorithmParameterSpec`.
 The FFX implementations are all modes of AES operation and thus take an AES key. They all
 support key sizes of 128, 192, and 256 bits.
 
-####Sample Code
+#### Sample Code
 ```java
     byte[] keyBytes = Hex.decode("2B7E151628AED2A6ABF7158809CF4F3C");
     SecretKey key = new SecretKeySpec(keyBytes, "AES");
@@ -38,7 +38,7 @@ support key sizes of 128, 192, and 256 bits.
     System.out.println(plaintext); // outputs 0123456789
 ```
 
-###References
+### References
 * https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-38G.pdf
 * https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-38Gr1-draft.pdf
 * https://csrc.nist.gov/CSRC/media/Projects/Cryptographic-Standards-and-Guidelines/documents/examples/FF1samples.pdf
